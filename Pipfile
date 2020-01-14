@@ -4,11 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = ">=3.7.9,<3.8.0"
 
 [packages]
 django = ">=3.0.2,<3.1.0"
 djangorestframework = ">=3.11.0,<3.12"
-flake8 = ">=3.7.9,<3.8.0"
+psycopg2 = ">=2.8.4,<2.9.0"
 
 [requires]
 python_version = "3.8"

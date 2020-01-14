@@ -10,3 +10,18 @@ services:
       - .:/app
     command: >
       sh -c "./manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=app
+      - DB_USER=postgres
+      - DB_PASS=mysuperpassword
+    depends_on:
+      - db
+
+  db:
+    container_name: recipe_db
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_DB=app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysuperpassword
