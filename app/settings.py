@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.getenv('DB_HOST', '127.0.0.1'),
         'NAME': os.getenv('DB_NAME', 'recipe'),
-        'USER': os.getenv('DB_USER', 'phpusr'),
+        'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASS', '')
     }
 }
