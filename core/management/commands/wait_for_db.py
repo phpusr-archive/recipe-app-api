@@ -2,6 +2,7 @@ import time
 from asgiref.sync import async_to_sync
 from django.core.management.base import BaseCommand
 from django.db import connections
+from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.utils import OperationalError
 
 
@@ -13,8 +14,11 @@ class Command(BaseCommand):
         db_conn = None
         while not db_conn:
             try:
-                db_conn = async_to_sync(connections['default'].ensure_connection())
+                db_conn = connections['default']
+                if isinstance(db_conn, BaseDatabaseWrapper):
+                    async_to_sync(db_conn.ensure_connection())
             except OperationalError:
+                db_conn = False
                 self.stdout.write('Database unavailable, waiting 1 second...')
                 time.sleep(1)
 
