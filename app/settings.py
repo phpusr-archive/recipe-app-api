@@ -128,7 +128,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'content/static'))
-STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'content/media'))
+STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(BASE_DIR, 'content/static'))
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(BASE_DIR, 'content/media'))
 
 AUTH_USER_MODEL = 'core.User'
