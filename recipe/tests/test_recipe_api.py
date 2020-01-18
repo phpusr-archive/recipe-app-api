@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 from core.models import Recipe, Tag, Ingredient
 from recipe.serializers import RecipeSerializer, RecipeDetailSerializer
 
-RECIPE_URL = reverse('recipe:recipe-list')
+RECIPES_URL = reverse('recipe:recipe-list')
 
 
 def detail_url(recipe_id):
@@ -45,7 +45,7 @@ class PublicRecipeApiTests(TestCase):
 
     def test_auth_required(self):
         """Test that authentication is required"""
-        res = self.client.get(RECIPE_URL)
+        res = self.client.get(RECIPES_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -62,7 +62,7 @@ class PrivateRecipeApiTest(TestCase):
         """Test retrieving a list of recipes"""
         sample_recipe(user=self.user)
         sample_recipe(user=self.user)
-        res = self.client.get(RECIPE_URL)
+        res = self.client.get(RECIPES_URL)
         recipes = Recipe.objects.all().order_by('id')
         serializer = RecipeSerializer(recipes, many=True)
 
@@ -75,7 +75,7 @@ class PrivateRecipeApiTest(TestCase):
         user2 = get_user_model().objects.create_user('another@mail.com', 'anotherpass')
         sample_recipe(user=user2, title='Other recipe')
         sample_recipe(user=self.user)
-        res = self.client.get(RECIPE_URL)
+        res = self.client.get(RECIPES_URL)
         recipes = Recipe.objects.filter(user=self.user)
         serializer = RecipeSerializer(recipes, many=True)
 
@@ -102,7 +102,7 @@ class PrivateRecipeApiTest(TestCase):
             'time_minutes': 5,
             'price': 5.00
         }
-        res = self.client.post(RECIPE_URL, payload)
+        res = self.client.post(RECIPES_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         recipe = Recipe.objects.get(id=res.data['id'])
@@ -119,7 +119,7 @@ class PrivateRecipeApiTest(TestCase):
             'time_minutes': 60,
             'price': 20.00
         }
-        res = self.client.post(RECIPE_URL, payload)
+        res = self.client.post(RECIPES_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         recipe = Recipe.objects.get(id=res.data['id'])
@@ -138,11 +138,44 @@ class PrivateRecipeApiTest(TestCase):
             'time_minutes': 20,
             'price': 7.00
         }
-        res = self.client.post(RECIPE_URL, payload)
-
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        res = self.client.post(RECIPES_URL, payload)
         recipe = Recipe.objects.get(id=res.data['id'])
         ingredients = recipe.ingredients.all()
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(ingredients.count(), 2)
         self.assertIn(ingredient1, ingredients)
         self.assertIn(ingredient2, ingredients)
+
+    def test_partial_update_recipe(self):
+        """Test updating a recipe with patch"""
+        recipe = sample_recipe(user=self.user)
+        recipe.tags.add(sample_tag(user=self.user))
+        new_tag = sample_tag(user=self.user, name='curry')
+        payload = {'title': 'Chicken tikka', 'tags': [new_tag.id]}
+        url = detail_url(recipe.id)
+        self.client.patch(url, payload)
+        recipe.refresh_from_db()
+        tags = recipe.tags.all()
+
+        self.assertEqual(recipe.title, payload['title'])
+        self.assertEqual(tags.count(), 1)
+        self.assertIn(new_tag, tags)
+
+    def test_full_update_recipe(self):
+        """Test updating a recipe with put"""
+        recipe = sample_recipe(user=self.user)
+        recipe.tags.add(sample_tag(user=self.user))
+        payload = {
+            'title': 'Spaghetti carbonara',
+            'time_minutes': 25,
+            'price': 5.00
+        }
+        url = detail_url(recipe.id)
+        self.client.put(url, payload)
+        recipe.refresh_from_db()
+
+        self.assertEqual(recipe.title, payload['title'])
+        self.assertEqual(recipe.time_minutes, payload['time_minutes'])
+        self.assertEqual(recipe.price, payload['price'])
+        self.assertEqual(recipe.tags.count(), 0)
