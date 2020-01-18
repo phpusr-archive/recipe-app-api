@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from core.models import Recipe
-from .serializers import RecipeSerializer
+from recipe.serializers import RecipeSerializer
 
 RECIPE_URL = reverse('recipe:recipe-list')
 
@@ -40,7 +40,7 @@ class PrivateRecipeApiTest(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = get_user_model().objects.create('test@test.com', 'pass123')
+        self.user = get_user_model().objects.create_user('test@test.com', 'pass123')
         self.client.force_authenticate(self.user)
 
     def test_retrieve_recipe(self):
@@ -48,7 +48,7 @@ class PrivateRecipeApiTest(TestCase):
         sample_recipe(user=self.user)
         sample_recipe(user=self.user)
         res = self.client.get(RECIPE_URL)
-        recipes = Recipe.objects.all().order_by('-id')
+        recipes = Recipe.objects.all().order_by('id')
         serializer = RecipeSerializer(recipes, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -57,15 +57,14 @@ class PrivateRecipeApiTest(TestCase):
 
     def test_recipes_limited_to_user(self):
         """Test retrieving recipes for user"""
-        user2 = get_user_model().objects.create('another@mail.com', 'anotherpass')
+        user2 = get_user_model().objects.create_user('another@mail.com', 'anotherpass')
         sample_recipe(user=user2, title='Other recipe')
         sample_recipe(user=self.user)
         res = self.client.get(RECIPE_URL)
         recipes = Recipe.objects.filter(user=self.user)
         serializer = RecipeSerializer(recipes, many=True)
 
-        self.assertEqual(res.status_codo, status.HTTP_200_OK)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(Recipe.objects.count(), 2)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data, serializer.data)
-
