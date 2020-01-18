@@ -17,6 +17,8 @@ services:
       - DB_NAME=app
       - DB_USER=postgres
       - DB_PASS=mysuperpassword
+      - MEDIA_ROOT=/vol/web/media
+      - STATIC_ROOT=/vol/web/static
     depends_on:
       - db
 
